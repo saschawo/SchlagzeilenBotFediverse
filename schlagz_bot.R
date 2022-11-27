@@ -2,9 +2,10 @@ library(tidyRSS)
 library(stringr)
 library(rtoot)
 
+# This is a token you need to get with the rtoot package first
 options("rtoot_token" = "SZBot.rds")
 
-feed <- tidyfeed("https://rss.sueddeutsche.de/rss/Topthemen")
+feed <- tidyfeed("<Insert RSS feed here>")
 titles <- feed$item_title
 
 # titles with exactly one colon
@@ -31,6 +32,7 @@ left.parts <- str_trim(sapply(split.titles, FUN = function (x) x[1]))
 right.parts <- str_trim(sapply(split.titles, FUN = function (x) x[2]))
 
 # Check old left & right parts
+# You need to create the files below before first use.
 used.left.parts <- scan("~/Data/SZ_left_parts.txt", what = "c", sep = "\n")
 left.parts <- left.parts[!(left.parts %in% used.left.parts)]
 used.right.parts <- scan("~/Data/SZ_right_parts.txt", what = "c", sep = "\n")
