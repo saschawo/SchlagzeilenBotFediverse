@@ -2,17 +2,17 @@ library(tidyRSS)
 library(stringr)
 library(rtoot)
 
-# This is a token you need to get with the rtoot package first
 options("rtoot_token" = "SZBot.rds")
+options(stringsAsFactors = F)
 
-feed <- tidyfeed("<Insert RSS feed here>")
+feed <- tidyfeed("https://rss.sueddeutsche.de/rss/Topthemen")
 titles <- feed$item_title
 
 # titles with exactly one colon
 titles <- titles[str_count(titles, fixed(":")) == 1]
 
 # titles without filtered words
-stopword.pattern <- "Newsblog|SZ"
+stopword.pattern <- "Newsblog|SZ|ticker"
 titles <- titles[grep(stopword.pattern, titles, ignore.case = F, invert = T)]
 
 split.titles <- strsplit(titles, ":", fixed = T)
@@ -32,22 +32,20 @@ left.parts <- str_trim(sapply(split.titles, FUN = function (x) x[1]))
 right.parts <- str_trim(sapply(split.titles, FUN = function (x) x[2]))
 
 # Check old left & right parts
-# You need to create the files below before first use.
 used.left.parts <- scan("~/Data/SZ_left_parts.txt", what = "c", sep = "\n")
 left.parts <- left.parts[!(left.parts %in% used.left.parts)]
 used.right.parts <- scan("~/Data/SZ_right_parts.txt", what = "c", sep = "\n")
 right.parts <- right.parts[!(right.parts %in% used.right.parts)]
 
-
+originals <- paste(left.parts, right.parts, sep = ": ")
 df <- expand.grid(left.parts, right.parts)
+df$new <- paste(df$Var1, df$Var2, sep = ": ")
 
 # exclude originals
-df$use <- c(rep(c(F, rep(T, length(left.parts))),
-                length(left.parts)-1), F)
+df$use <- !(df$new %in% originals)
 
 df <- df[df$use,]
 
-df$new <- paste(df$Var1, df$Var2, sep = ": ")
 toot.df <- df[sample(1:nrow(df), 1),]
 
 toot <- sample(toot.df$new, 1)
